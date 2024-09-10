@@ -1,0 +1,22 @@
+[
+    {
+        "title": "Lecture 1",
+        "url": "https://kgs.nyc3.digitaloceanspaces.com/pdfs/0482cc91-f275-4c4d-ba8b-59511854bdfc.pdf",
+        "thumbnail": "https://example.com/thumbnails/lecture1.jpg"
+    },
+    {
+        "title": "Lecture 2",
+        "url": "https://kgs.nyc3.digitaloceanspaces.com/pdfs/9d9baff6-ca24-4d0d-b323-d637ab394d7d.pdf",
+        "thumbnail": "https://example.com/thumbnails/lecture2.jpg"
+    },
+    {
+        "title": "Lecture 3",
+        "url": "https://kgs.nyc3.digitaloceanspaces.com/pdfs/2d9210ab-2656-466a-90bb-078be61d41dd.pdf",
+        "thumbnail": "https://example.com/thumbnails/lecture3.jpg"
+    },
+    {
+        "title": "Lecture 4",
+        "url": "https://kgs.nyc3.digitaloceanspaces.com/pdfs/c7d8b777-d259-49a6-bfed-7511659a281b.pdf",
+        "thumbnail": "https://example.com/thumbnails/lecture4.jpg"
+    }
+]
