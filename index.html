@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Viewer with PDF.js</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+        }
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px;
+        }
+        .pdf-selector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            width: 90vw;
+            max-width: 1200px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .pdf-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #ffffff;
+            width: 100%;
+            transition: background-color 0.3s, transform 0.3s;
+            box-sizing: border-box;
+        }
+        .pdf-item:hover {
+            background-color: #f0f0f0;
+            transform: scale(1.02);
+        }
+        .pdf-item img {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+            border-radius: 5px;
+        }
+        .pdf-item span {
+            font-size: 16px;
+            flex: 1;
+        }
+        #pdf-viewer {
+            border: 1px solid #ddd;
+            width: 90vw;
+            max-width: 1200px;
+            height: 80vh;
+            overflow: auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+        .footer {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            border-top: 1px solid #ddd;
+        }
+        .footer a {
+            color: #fff;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .pdf-item.active {
+            background-color: #e0e0e0;
+        }
+        .pdf-selector .close-button {
+            margin-top: 10px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .pdf-selector .close-button:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    PDF Viewer
+</div>
+
+<div class="container">
+    <div class="pdf-selector" id="pdf-selector">
+        <button class="close-button" onclick="toggleSelector()">Choose Lecture 📁</button>
+    </div>
+    <div id="pdf-viewer">
+        <canvas id="pdf-canvas"></canvas>
+    </div>
+</div>
+
+<div class="footer">
+    <p>&copy; 2024 LAKSHYANISCHAY. All rights reserved. | <a href="https://t.me/currentaffairsupdatz" target="_blank">Join us on Telegram</a></p>
+</div>
+
+<!-- PDF.js library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+<script>
+    const jsonURL = 'https://raw.githubusercontent.com/Govexam/PDFLECTURE-/main/Pdflectures.json';
+    let isSelectorVisible = false;
+
+    function fetchPDFList() {
+        fetch(jsonURL)
+            .then(response => response.json())
+            .then(data => {
+                const pdfSelectorContainer = document.getElementById('pdf-selector');
+                const selectorButton = document.createElement('button');
+                selectorButton.className = 'close-button';
+                selectorButton.textContent = 'Choose Lecture 📁';
+                selectorButton.onclick = () => toggleSelector();
+                pdfSelectorContainer.appendChild(selectorButton);
+
+                data.forEach(item => {
+                    const pdfItem = document.createElement('div');
+                    pdfItem.className = 'pdf-item';
+                    pdfItem.onclick = () => displayPDF(item.url);
+
+                    const thumbnail = document.createElement('img');
+                    thumbnail.src = item.thumbnail || 'https://via.placeholder.com/50';
+                    thumbnail.alt = item.title;
+
+                    const title = document.createElement('span');
+                    title.textContent = item.title;
+
+                    pdfItem.appendChild(thumbnail);
+                    pdfItem.appendChild(title);
+                    pdfSelectorContainer.appendChild(pdfItem);
+                });
+            })
+            .catch(error => console.error('Error fetching JSON:', error));
+    }
+
+    function displayPDF(url) {
+        const canvas = document.getElementById('pdf-canvas');
+        const context = canvas.getContext('2d');
+
+        pdfjsLib.getDocument(url).promise.then(pdf => {
+            pdf.getPage(1).then(page => {
+                const scale = 1.5;
+                const viewport = page.getViewport({ scale: scale });
+
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                page.render(renderContext);
+            });
+        }).catch(error => console.error('Error loading PDF:', error));
+    }
+
+    function toggleSelector() {
+        const selectorContainer = document.getElementById('pdf-selector');
+        if (isSelectorVisible) {
+            // Hide the selector
+            selectorContainer.innerHTML = '<button class="close-button" onclick="toggleSelector()">Choose Lecture 📁</button>';
+            isSelectorVisible = false;
+        } else {
+            // Show the selector
+            fetchPDFList();
+            isSelectorVisible = true;
+        }
+    }
+
+    fetchPDFList(); // Initial fetch to populate the PDF list
+</script>
+
+</body>
+</html>
