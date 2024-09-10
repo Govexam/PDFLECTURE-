@@ -13,7 +13,7 @@
             color: #333;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            height: 100vh;
         }
         .header {
             background-color: #4CAF50;
@@ -21,26 +21,46 @@
             padding: 15px;
             text-align: center;
             font-size: 24px;
+            position: relative;
+        }
+        .header .toggle-button {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            background-color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+        }
+        .header .toggle-button:hover {
+            background-color: #e0e0e0;
         }
         .container {
-            flex: 1;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            margin: 20px;
+            height: calc(100% - 60px); /* Adjust for header height */
+            overflow: hidden;
+            position: relative;
         }
         .pdf-selector {
-            display: flex;
+            display: none;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 20px;
-            width: 90vw;
-            max-width: 1200px;
+            width: 100%;
             border: 1px solid #ddd;
             padding: 20px;
             background-color: #ffffff;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
+            position: absolute;
+            top: 60px; /* Adjust for header height */
+            z-index: 10;
+            max-height: calc(100% - 60px); /* Adjust for header height */
+            overflow-y: auto;
         }
         .pdf-item {
             display: flex;
@@ -71,20 +91,20 @@
         }
         #pdf-viewer {
             border: 1px solid #ddd;
-            width: 90vw;
-            max-width: 1200px;
-            height: 80vh;
-            overflow: auto;
             background-color: #ffffff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-top: 20px;
+            flex: 1;
+            padding: 20px;
+            box-sizing: border-box;
         }
-        canvas {
-            width: 100%;
-            height: 100%;
+        #pdf-canvas {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            background-color: #ffffff;
         }
         .footer {
             background-color: #4CAF50;
@@ -101,35 +121,17 @@
         .footer a:hover {
             text-decoration: underline;
         }
-        .pdf-item.active {
-            background-color: #e0e0e0;
-        }
-        .pdf-selector .close-button {
-            margin-top: 10px;
-            background-color: #f44336;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-        .pdf-selector .close-button:hover {
-            background-color: #d32f2f;
-        }
     </style>
 </head>
 <body>
 
 <div class="header">
     PDF Viewer
+    <button class="toggle-button" onclick="toggleSelector()">Choose Lecture 📁</button>
 </div>
 
 <div class="container">
-    <div class="pdf-selector" id="pdf-selector">
-        <button class="close-button" onclick="toggleSelector()">Choose Lecture 📁</button>
-    </div>
+    <div class="pdf-selector" id="pdf-selector"></div>
     <div id="pdf-viewer">
         <canvas id="pdf-canvas"></canvas>
     </div>
@@ -151,11 +153,7 @@
             .then(response => response.json())
             .then(data => {
                 const pdfSelectorContainer = document.getElementById('pdf-selector');
-                const selectorButton = document.createElement('button');
-                selectorButton.className = 'close-button';
-                selectorButton.textContent = 'Choose Lecture 📁';
-                selectorButton.onclick = () => toggleSelector();
-                pdfSelectorContainer.appendChild(selectorButton);
+                pdfSelectorContainer.innerHTML = ''; // Clear any existing content
 
                 data.forEach(item => {
                     const pdfItem = document.createElement('div');
@@ -183,7 +181,7 @@
 
         pdfjsLib.getDocument(url).promise.then(pdf => {
             pdf.getPage(1).then(page => {
-                const scale = 1.5;
+                const scale = 1.5; // Adjust scale as needed
                 const viewport = page.getViewport({ scale: scale });
 
                 canvas.height = viewport.height;
@@ -202,16 +200,18 @@
         const selectorContainer = document.getElementById('pdf-selector');
         if (isSelectorVisible) {
             // Hide the selector
-            selectorContainer.innerHTML = '<button class="close-button" onclick="toggleSelector()">Choose Lecture 📁</button>';
+            selectorContainer.style.display = 'none';
             isSelectorVisible = false;
         } else {
             // Show the selector
             fetchPDFList();
+            selectorContainer.style.display = 'flex';
             isSelectorVisible = true;
         }
     }
 
-    fetchPDFList(); // Initial fetch to populate the PDF list
+    // Initial setup
+    document.getElementById('pdf-selector').style.display = 'none'; // Ensure selector is hidden initially
 </script>
 
 </body>
